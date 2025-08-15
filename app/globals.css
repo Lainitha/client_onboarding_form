@@ -1,26 +1,128 @@
 @import "tailwindcss";
 
+/* Theme Variables */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #111827; /* Tailwind gray-900 */
+  --primary: #2563eb; /* Tailwind blue-600 */
+  --secondary: #6b7280; /* Tailwind gray-500 */
+  --border: #d1d5db; /* Tailwind gray-300 */
+  --radius: 0.5rem;
+  --transition-speed: 0.2s;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --font-sans: var(--font-geist-sans, system-ui, -apple-system, Arial, sans-serif);
+  --font-mono: var(--font-geist-mono, monospace);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* Dark Mode Variables */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground: #f9fafb; /* Tailwind gray-50 */
+    --primary: #3b82f6; /* Tailwind blue-500 */
+    --secondary: #d1d5db; /* Tailwind gray-300 */
+    --border: #374151; /* Tailwind gray-700 */
+    --shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
   }
 }
 
+/* Base Styling */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  transition: background var(--transition-speed) ease, color var(--transition-speed) ease;
+}
+
+/* Form Container */
+form {
+  background: var(--background);
+  padding: 2rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  max-width: 450px;
+  margin: 2rem auto;
+  border: 1px solid var(--border);
+}
+
+/* Labels */
+label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+/* Inputs, Textareas, Selects */
+input, textarea, select {
+  width: 100%;
+  font-family: inherit;
+  border: 1px solid var(--border);
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius);
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--secondary);
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+}
+
+/* Checkboxes & Radios */
+input[type="checkbox"], input[type="radio"] {
+  width: auto;
+  accent-color: var(--primary);
+  margin-right: 0.5rem;
+}
+
+/* Buttons */
+button {
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition-speed), transform var(--transition-speed);
+}
+
+button:hover {
+  background: #1d4ed8; /* Darker blue */
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Error messages */
+.error-message {
+  color: #dc2626; /* Tailwind red-600 */
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Success messages */
+.success-message {
+  color: #16a34a; /* Tailwind green-600 */
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
 }
