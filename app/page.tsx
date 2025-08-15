@@ -3,11 +3,24 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { onboardingSchema, type OnboardingFormData, SERVICE_OPTIONS } from "@/lib/schema";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function Home() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [serverSuccess, setServerSuccess] = useState<OnboardingFormData | null>(null);
+
+  // Get URL query params
+  const searchParams = useSearchParams();
+  const prefillValues: Partial<OnboardingFormData> = {
+    fullName: searchParams.get("fullName") || "",
+    email: searchParams.get("email") || "",
+    companyName: searchParams.get("companyName") || "",
+    projectStartDate: searchParams.get("projectStartDate") || "",
+    services: searchParams.getAll("service").filter(service => 
+      SERVICE_OPTIONS.includes(service as typeof SERVICE_OPTIONS[number])
+    ) as typeof SERVICE_OPTIONS[number][],
+  };
 
   const {
     register,
@@ -15,9 +28,28 @@ export default function Home() {
     formState: { errors, isSubmitting },
     reset,
   } = useForm<OnboardingFormData>({
-    resolver: zodResolver(onboardingSchema),
-    defaultValues: { services: [], acceptTerms: false },
+    resolver: zodResolver(onboardingSchema) as any,
+    defaultValues: {
+      services: [],
+      ...prefillValues, // merge prefill values
+    },
+    shouldUnregister: false,
+    mode: "onChange",
+    reValidateMode: "onChange",
   });
+
+  // Reset form if URL changes
+  useEffect(() => {
+    reset({
+      services: searchParams.getAll("service").filter(service => 
+        SERVICE_OPTIONS.includes(service as typeof SERVICE_OPTIONS[number])
+      ) as typeof SERVICE_OPTIONS[number][],
+      fullName: searchParams.get("fullName") || "",
+      email: searchParams.get("email") || "",
+      companyName: searchParams.get("companyName") || "",
+      projectStartDate: searchParams.get("projectStartDate") || "",
+    });
+  }, [searchParams, reset]);
 
   const onSubmit = async (data: OnboardingFormData) => {
     setServerError(null);
@@ -30,7 +62,6 @@ export default function Home() {
       });
 
       if (!res.ok) {
-        // Attempt to parse error message if API returns JSON
         try {
           const err = await res.json();
           const msg = err?.message || `Request failed with status ${res.status}`;
@@ -41,8 +72,8 @@ export default function Home() {
         return;
       }
 
-      setServerSuccess(data); // store for summary display
-      reset({ services: [], acceptTerms: false }); // clear form after success
+      setServerSuccess(data);
+      reset({ services: [] });
     } catch (e) {
       setServerError("Network error. Please check your connection and try again.");
     }
@@ -52,19 +83,27 @@ export default function Home() {
     <main className="min-h-dvh bg-gray-50 text-gray-900">
       <div className="mx-auto max-w-2xl p-6">
         <h1 className="text-3xl font-bold mb-2">Client Onboarding</h1>
-        <p className="text-sm text-gray-600 mb-6">Tell us a bit about your project. All fields marked * are required.</p>
+        <p className="text-sm text-gray-600 mb-6">
+          Tell us a bit about your project. All fields marked * are required.
+        </p>
 
-        {/* Error Notice */}
         {serverError && (
-          <div role="alert" aria-live="assertive" className="mb-4 rounded-2xl border border-red-300 bg-red-50 p-3 text-red-800">
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="mb-4 rounded-2xl border border-red-300 bg-red-50 p-3 text-red-800"
+          >
             <strong className="block font-semibold mb-1">Submission failed</strong>
             <span>{serverError}</span>
           </div>
         )}
 
-        {/* Success Notice */}
         {serverSuccess && (
-          <div role="status" aria-live="polite" className="mb-4 rounded-2xl border border-green-300 bg-green-50 p-3 text-green-800">
+          <div
+            role="status"
+            aria-live="polite"
+            className="mb-4 rounded-2xl border border-green-300 bg-green-50 p-3 text-green-800"
+          >
             <strong className="block font-semibold mb-1">Success!</strong>
             <p className="mb-2">Thanks, {serverSuccess.fullName}. Here's what we received:</p>
             <ul className="list-disc pl-6 text-sm">
@@ -77,10 +116,12 @@ export default function Home() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 rounded-2xl bg-white p-5 shadow">
+        <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-5 rounded-2xl bg-white p-5 shadow">
           {/* Full Name */}
           <div>
-            <label htmlFor="fullName" className="block text-sm font-medium">Full Name *</label>
+            <label htmlFor="fullName" className="block text-sm font-medium">
+              Full Name *
+            </label>
             <input
               id="fullName"
               type="text"
@@ -93,7 +134,9 @@ export default function Home() {
 
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium">Email *</label>
+            <label htmlFor="email" className="block text-sm font-medium">
+              Email *
+            </label>
             <input
               id="email"
               type="email"
@@ -106,7 +149,9 @@ export default function Home() {
 
           {/* Company Name */}
           <div>
-            <label htmlFor="companyName" className="block text-sm font-medium">Company Name *</label>
+            <label htmlFor="companyName" className="block text-sm font-medium">
+              Company Name *
+            </label>
             <input
               id="companyName"
               type="text"
@@ -142,7 +187,11 @@ export default function Home() {
 
           {/* Budget */}
           <div>
-            <label htmlFor="budgetUsd" className="block text-sm font-medium">Budget (USD) <span className="text-gray-500" aria-hidden>— optional</span></label>
+            <label htmlFor="budgetUsd" className="block text-sm font-medium">
+              Budget (USD) <span className="text-gray-500" aria-hidden>
+                — optional
+              </span>
+            </label>
             <input
               id="budgetUsd"
               type="number"
@@ -157,7 +206,9 @@ export default function Home() {
 
           {/* Project Start Date */}
           <div>
-            <label htmlFor="projectStartDate" className="block text-sm font-medium">Project Start Date *</label>
+            <label htmlFor="projectStartDate" className="block text-sm font-medium">
+              Project Start Date *
+            </label>
             <input
               id="projectStartDate"
               type="date"
@@ -176,7 +227,9 @@ export default function Home() {
               {...register("acceptTerms")}
               className="mt-1 h-4 w-4 rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
             />
-            <label htmlFor="acceptTerms" className="text-sm">I agree to the terms and conditions *</label>
+            <label htmlFor="acceptTerms" className="text-sm">
+              I agree to the terms and conditions *
+            </label>
           </div>
           {errors.acceptTerms && <p className="-mt-2 text-xs text-red-600">{errors.acceptTerms.message}</p>}
 
@@ -192,7 +245,9 @@ export default function Home() {
           </div>
         </form>
 
-        <p className="mt-4 text-xs text-gray-500">API URL: <code>process.env.NEXT_PUBLIC_ONBOARD_URL</code></p>
+        <p className="mt-4 text-xs text-gray-500">
+          API URL: <code>process.env.NEXT_PUBLIC_ONBOARD_URL</code>
+        </p>
       </div>
     </main>
   );
